@@ -54,107 +54,103 @@
       }
     }
 
-    async function renderCharts() {
-      const data = await fetchData();
-      if (!data) return;
+async function renderCharts() {
+  const data = await fetchData();
+  if (!data) return;
 
-      const labels1 = data.slice(1).map(row => row[0]); 
-      const values1 = data.slice(1).map(row => parseFloat(row[1])); 
+  const labels1 = data.slice(1).map(row => row[0]); // Labels from Column A
+  const values1 = data.slice(1).map(row => parseFloat(row[1])); // Values from Column B
 
-      const labels2 = data.slice(1).map(row => row[3]); 
-      const values2 = data.slice(1).map(row => parseFloat(row[4])); 
+  const labels2 = data.slice(1).map(row => row[3]); // Labels from Column D
+  const values2 = data.slice(1).map(row => parseFloat(row[4])); // Actual values from Column E
+  const plannedValues = data.slice(1).map(row => parseFloat(row[5])); // Planned values from Column F
 
-const ctx1 = document.getElementById('chart1').getContext('2d');
-new Chart(ctx1, {
-  type: 'bar',
-  data: {
-    labels: labels1, // Labels from Column A
-    datasets: [{
-      label: 'Work Package %',
-      data: values1, // Values from Column B
-      backgroundColor: 'rgba(75, 192, 192, 0.2)', // Bar color
-      borderColor: 'rgba(75, 192, 192, 1)', // Border color
-      borderWidth: 1
-    }]
-  },
-  options: {
-    responsive: true,
-    scales: {
-      x: {
-        ticks: {
-          autoSkip: false, // Prevent auto skipping of labels
-          maxRotation: 45, // Rotate labels by 45 degrees
-          minRotation: 30, // Minimum rotation (optional)
-          padding: 10, // Add extra padding to avoid overlap
-          font: {
-            size: 8, // Reduce the font size of X-axis labels (default is 12)
-            weight: 'normal', // Optional: set font weight if needed
-            family: 'Arial, sans-serif' // Optional: change font family
+  const ctx1 = document.getElementById('chart1').getContext('2d');
+  new Chart(ctx1, {
+    type: 'bar',
+    data: {
+      labels: labels1,
+      datasets: [{
+        label: 'Data from Columns A and B',
+        data: values1,
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        borderColor: 'rgba(75, 192, 192, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        x: {
+          ticks: {
+            autoSkip: false,
+            maxRotation: 45,
+            minRotation: 30,
+            padding: 10
+          }
+        },
+        y: {
+          beginAtZero: true
+        }
+      },
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return context.raw;
+            }
+          }
+        }
+      }
+    }
+  });
+
+  const ctx2 = document.getElementById('chart2').getContext('2d');
+  new Chart(ctx2, {
+    type: 'line',
+    data: {
+      labels: labels2,
+      datasets: [{
+        label: 'Actual Data from Columns D and E',
+        data: values2,
+        backgroundColor: 'rgba(153, 102, 255, 0.2)',
+        borderColor: 'rgba(153, 102, 255, 1)',
+        borderWidth: 1
+      },
+      {
+        label: 'Planned Data',
+        data: plannedValues, // Add planned values here
+        backgroundColor: 'rgba(255, 159, 64, 0.2)',
+        borderColor: 'rgba(255, 159, 64, 1)',
+        borderWidth: 1,
+        borderDash: [5, 5] // Dashed line for the "Planned" data
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 100,
+          ticks: {
+            callback: function(value) {
+              return value + '%';
+            }
           }
         }
       },
-      y: {
-        beginAtZero: true // Start Y-axis at 0
-      }
-    },
-    plugins: {
-      tooltip: {
-        callbacks: {
-          label: function(context) {
-            return context.raw; // Display value in tooltips
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return context.raw + '%';
+            }
           }
         }
       }
     }
-  }
-});
-
-const ctx2 = document.getElementById('chart2').getContext('2d');
-new Chart(ctx2, {
-  type: 'line', // Line chart type
-  data: {
-    labels: labels2, // Labels from Column D
-    datasets: [{
-      label: 'Actual Data from Columns D and E', // Dataset for actual values
-      data: values2, // Actual values from Column E
-      backgroundColor: 'rgba(153, 102, 255, 0.2)', // Background color (line fill)
-      borderColor: 'rgba(153, 102, 255, 1)', // Line color
-      borderWidth: 1
-    },
-    {
-      label: 'Planned Data', // New dataset for the "Planned" values
-      data: plannedValues, // Planned values from Column F
-      backgroundColor: 'rgba(255, 159, 64, 0.2)', // Planned line fill color
-      borderColor: 'rgba(255, 159, 64, 1)', // Planned line color
-      borderWidth: 1,
-      borderDash: [5, 5] // Optional: make the "Planned" line dashed
-    }]
-  },
-  options: {
-    responsive: true,
-    scales: {
-      y: {
-        beginAtZero: true, // Start Y-axis at 0
-        max: 100, // Fix Y-axis max at 100
-        ticks: {
-          callback: function(value) {
-            return value + '%'; // Display percentage on Y-axis labels
-          }
-        }
-      }
-    },
-    plugins: {
-      tooltip: {
-        callbacks: {
-          label: function(context) {
-            return context.raw + '%'; // Display percentage in tooltips
-          }
-        }
-      }
-    }
-  }
-});
-    }
+  });
+}
 
     renderCharts();
   </script>
