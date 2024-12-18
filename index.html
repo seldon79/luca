@@ -15,6 +15,9 @@
       max-width: 600px;
       margin: 20px auto;
     }
+    .chart-container {
+      margin-bottom: 40px;
+    }
     .error {
       color: red;
     }
@@ -22,7 +25,17 @@
 </head>
 <body>
   <h1>Google Sheets CSV Dashboard</h1>
-  <canvas id="myChart"></canvas>
+  
+  <div class="chart-container">
+    <h3>Chart 1: Columns A (Labels) and B (Values)</h3>
+    <canvas id="chart1"></canvas>
+  </div>
+
+  <div class="chart-container">
+    <h3>Chart 2: Columns D (Labels) and E (Values)</h3>
+    <canvas id="chart2"></canvas>
+  </div>
+
   <div id="error" class="error"></div>
 
   <script>
@@ -34,7 +47,7 @@
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const csvData = await response.text();
 
-        // Parse CSV data
+        // Parse CSV data into rows and columns
         const rows = csvData.split('\n').map(row => row.split(','));
         return rows; // Returns a 2D array (rows and columns)
       } catch (error) {
@@ -43,23 +56,27 @@
       }
     }
 
-    async function renderChart() {
+    async function renderCharts() {
       const data = await fetchData();
       if (!data) return;
 
-      // Extract labels and values from the CSV
-      const labels = data.slice(1).map(row => row[0]); // Skip the header, first column
-      const values = data.slice(1).map(row => parseFloat(row[1])); // Skip the header, second column
+      // Process data for Chart 1 (Columns A and B)
+      const labels1 = data.slice(1).map(row => row[0]); // Column A
+      const values1 = data.slice(1).map(row => parseFloat(row[1])); // Column B
 
-      // Render Chart.js
-      const ctx = document.getElementById('myChart').getContext('2d');
-      new Chart(ctx, {
-        type: 'bar', // Change to 'line', 'pie', etc., as needed
+      // Process data for Chart 2 (Columns D and E)
+      const labels2 = data.slice(1).map(row => row[3]); // Column D
+      const values2 = data.slice(1).map(row => parseFloat(row[4])); // Column E
+
+      // Render Chart 1
+      const ctx1 = document.getElementById('chart1').getContext('2d');
+      new Chart(ctx1, {
+        type: 'bar',
         data: {
-          labels: labels,
+          labels: labels1,
           datasets: [{
-            label: 'Sample Data',
-            data: values,
+            label: 'Data from Columns A and B',
+            data: values1,
             backgroundColor: 'rgba(75, 192, 192, 0.2)',
             borderColor: 'rgba(75, 192, 192, 1)',
             borderWidth: 1
@@ -74,9 +91,33 @@
           }
         }
       });
+
+      // Render Chart 2
+      const ctx2 = document.getElementById('chart2').getContext('2d');
+      new Chart(ctx2, {
+        type: 'line',
+        data: {
+          labels: labels2,
+          datasets: [{
+            label: 'Data from Columns D and E',
+            data: values2,
+            backgroundColor: 'rgba(153, 102, 255, 0.2)',
+            borderColor: 'rgba(153, 102, 255, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
     }
 
-    renderChart();
+    renderCharts();
   </script>
 </body>
 </html>
