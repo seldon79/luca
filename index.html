@@ -3,43 +3,58 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Google Sheets Dashboard</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- For charts -->
+  <title>Google Sheets CSV Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Chart.js Library -->
   <style>
     body {
       font-family: Arial, sans-serif;
+      text-align: center;
       margin: 20px;
     }
     canvas {
       max-width: 600px;
       margin: 20px auto;
     }
+    .error {
+      color: red;
+    }
   </style>
 </head>
 <body>
-  <h1>Dashboard</h1>
+  <h1>Google Sheets CSV Dashboard</h1>
   <canvas id="myChart"></canvas>
-  
+  <div id="error" class="error"></div>
+
   <script>
-    const API_KEY = 'AIzaSyCCgeqQsKlGzYNvTowoAicHpo2gNhkYPy0';
-    const SHEET_ID = 'https://docs.google.com/spreadsheets/d/1I80UhyQQQW7PqnUc8_KSDMPtjL6tUeJLl5nywI02zgA';
-    const RANGE = 'Sheet1!A1:B10'; // Adjust to your data range
+    const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS6zal3xZsyAUPFAQSzR-Trb9gA74KxKqZglc29D8ncwO8HvDeInJebZPMe4HSOxTkXczoyum-OLiq/pub?output=csv'; // Replace with your published CSV URL
 
     async function fetchData() {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${RANGE}?key=${API_KEY}`;
-      const response = await fetch(url);
-      const data = await response.json();
-      return data.values;
+      try {
+        const response = await fetch(SHEET_CSV_URL);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const csvData = await response.text();
+
+        // Parse CSV data
+        const rows = csvData.split('\n').map(row => row.split(','));
+        return rows; // Returns a 2D array (rows and columns)
+      } catch (error) {
+        document.getElementById('error').textContent = `Error: ${error.message}`;
+        return null;
+      }
     }
 
     async function renderChart() {
       const data = await fetchData();
-      const labels = data.slice(1).map(row => row[0]); // Assuming first column is labels
-      const values = data.slice(1).map(row => parseFloat(row[1])); // Second column is data
+      if (!data) return;
 
+      // Extract labels and values from the CSV
+      const labels = data.slice(1).map(row => row[0]); // Skip the header, first column
+      const values = data.slice(1).map(row => parseFloat(row[1])); // Skip the header, second column
+
+      // Render Chart.js
       const ctx = document.getElementById('myChart').getContext('2d');
       new Chart(ctx, {
-        type: 'bar', // Change to 'line', 'pie', etc.
+        type: 'bar', // Change to 'line', 'pie', etc., as needed
         data: {
           labels: labels,
           datasets: [{
