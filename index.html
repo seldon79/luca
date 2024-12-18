@@ -24,61 +24,68 @@
   </style>
 </head>
 <body>
-  <h1>Avanzamento EPC - Dashboard</h1>
+  <h1>Google Sheets CSV Dashboard</h1>
   
+  <!-- Chart 1 for Columns A and B -->
   <div class="chart-container">
-    <h3>Avanzamento Work Package %</h3>
+    <h3>Chart 1: Columns A (Labels) and B (Values)</h3>
     <canvas id="chart1"></canvas>
   </div>
 
+  <!-- Chart 2 for Columns D and E -->
   <div class="chart-container">
-    <h3>Progress Mensile %</h3>
+    <h3>Chart 2: Columns D (Labels) and E (Values)</h3>
     <canvas id="chart2"></canvas>
   </div>
 
+  <!-- Error message if data fetch fails -->
   <div id="error" class="error"></div>
 
   <script>
-    const SHEET_CSV_URL = https://docs.google.com/spreadsheets/d/e/2PACX-1vSS6zal3xZsyAUPFAQSzR-Trb9gA74KxKqZglc29D8ncwO8HvDeInJebZPMe4HSOxTkXczoyum-OLiq/pub?output=csv; // Replace with your published CSV URL
+    // Replace with your published Google Sheets CSV URL
+    const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS6zal3xZsyAUPFAQSzR-Trb9gA74KxKqZglc29D8ncwO8HvDeInJebZPMe4HSOxTkXczoyum-OLiq/pub?output=csv';
 
+    // Fetch and parse data from the CSV file
     async function fetchData() {
       try {
         const response = await fetch(SHEET_CSV_URL);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const csvData = await response.text();
-
-        // Parse CSV data into rows and columns
+        
+        // Split CSV into rows and columns
         const rows = csvData.split('\n').map(row => row.split(','));
-        return rows; // Returns a 2D array (rows and columns)
+        return rows; // Return as a 2D array of rows and columns
       } catch (error) {
+        // Display error if data fetch fails
         document.getElementById('error').textContent = `Error: ${error.message}`;
         return null;
       }
     }
 
+    // Render charts with data from the sheet
     async function renderCharts() {
       const data = await fetchData();
-      if (!data) return;
+      if (!data) return; // If no data, exit early
 
       // Process data for Chart 1 (Columns A and B)
-      const labels1 = data.slice(1).map(row => row[0]); // Column A
-      const values1 = data.slice(1).map(row => parseFloat(row[1])); // Column B
+      const labels1 = data.slice(1).map(row => row[0]); // Extract labels from Column A
+      const values1 = data.slice(1).map(row => parseFloat(row[1])); // Extract values from Column B
 
       // Process data for Chart 2 (Columns D and E)
-      const labels2 = data.slice(1).map(row => row[3]); // Column D
-      const values2 = data.slice(1).map(row => parseFloat(row[4])); // Column E
+      const labels2 = data.slice(1).map(row => row[3]); // Extract labels from Column D
+      const values2 = data.slice(1).map(row => parseFloat(row[4])); // Extract values from Column E
 
-      // Render Chart 1
+      // Render Chart 1 - Bar chart for Columns A and B
       const ctx1 = document.getElementById('chart1').getContext('2d');
       new Chart(ctx1, {
         type: 'bar',
         data: {
-          labels: labels1,
+          labels: labels1, // Labels from Column A
           datasets: [{
-            label: ' Avanzamento Work Package %',
-            data: values1,
-            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-            borderColor: 'rgba(75, 192, 192, 1)',
+            label: 'Data from Columns A and B',
+            data: values1, // Values from Column B
+            backgroundColor: 'rgba(75, 192, 192, 0.2)', // Bar color
+            borderColor: 'rgba(75, 192, 192, 1)', // Border color
             borderWidth: 1
           }]
         },
@@ -86,51 +93,53 @@
           responsive: true,
           scales: {
             y: {
-              beginAtZero: true
+              beginAtZero: true // Start Y-axis at 0
             }
           }
         }
       });
 
-      // Render Chart 2
-const ctx2 = document.getElementById('chart2').getContext('2d');
-new Chart(ctx2, {
-  type: 'line', // Chart type (can be changed as needed)
-  data: {
-    labels: labels2, // X-axis labels (from column D)
-    datasets: [{
-      label: ' Progress Mensile %',
-      data: values2, // Y-axis values (from column E)
-      backgroundColor: 'rgba(153, 102, 255, 0.2)',
-      borderColor: 'rgba(153, 102, 255, 1)',
-      borderWidth: 1
-    }]
-  },
-  options: {
-    responsive: true,
-    scales: {
-      y: {
-        beginAtZero: true, // Y-axis starts at 0
-        max: 100, // Y-axis ends at 100
-        ticks: {
-          callback: function(value) {
-            return value + '%'; // Display percentage on Y-axis
+      // Render Chart 2 - Line chart for Columns D and E
+      const ctx2 = document.getElementById('chart2').getContext('2d');
+      new Chart(ctx2, {
+        type: 'line', // Type: line chart
+        data: {
+          labels: labels2, // Labels from Column D
+          datasets: [{
+            label: 'Data from Columns D and E',
+            data: values2, // Values from Column E
+            backgroundColor: 'rgba(153, 102, 255, 0.2)', // Line chart background color
+            borderColor: 'rgba(153, 102, 255, 1)', // Line color
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true, // Start Y-axis at 0
+              max: 100, // Fix Y-axis max at 100
+              ticks: {
+                callback: function(value) {
+                  return value + '%'; // Display percentage on Y-axis labels
+                }
+              }
+            }
+          },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return context.raw + '%'; // Display percentage in tooltips
+                }
+              }
+            }
           }
         }
-      }
-    },
-    plugins: {
-      tooltip: {
-        callbacks: {
-          label: function(context) {
-            return context.raw + '%'; // Display percentage in tooltips
-          }
-        }
-      }
+      });
     }
-  }
-});
 
+    // Call the function to render charts
     renderCharts();
   </script>
 </body>
